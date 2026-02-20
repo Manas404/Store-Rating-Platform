@@ -1,7 +1,10 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import AuthProvider from './context/AuthContext';
+import { useAuth } from './hooks/useAuth';
 
 import StoreFeed from './pages/User/StoreFeed';
+import ManageStores from './pages/Admin/ManageStores';
+import ManageUsers from './pages/Admin/ManageUsers';
 // Auth Pages
 import Login from './pages/Auth/Login';
 import Register from './pages/Auth/Register';
@@ -31,15 +34,31 @@ const ProtectedRoute = ({ children, allowedRole }) => {
 };
 
 function AppRoutes() {
+    const { user } = useAuth();
+    
     return (
         <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={user ? <Navigate to={user.role === 'ADMIN' ? '/admin' : user.role === 'STORE_OWNER' ? '/owner' : '/user'} replace /> : <Navigate to="/login" replace />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
 
-            {/* Protected Admin Routes */}
+            {/* Protected Admin Routes - Specific routes MUST come before the catch-all */}
+            <Route 
+                path="/admin/stores" 
+                element={
+                    <ProtectedRoute allowedRole="ADMIN">
+                        <ManageStores />
+                    </ProtectedRoute>
+                } 
+            />
+
+            <Route 
+                path="/admin/users" 
+                element={<ProtectedRoute allowedRole="ADMIN"><ManageUsers /></ProtectedRoute>} 
+            />
+
             <Route 
                 path="/admin/*" 
                 element={

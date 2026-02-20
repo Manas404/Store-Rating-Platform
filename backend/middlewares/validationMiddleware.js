@@ -1,9 +1,9 @@
 const validateSignup = (req, res, next) => {
     const { name, email, password, address } = req.body;
 
-    // Name: Min 20, Max 60
-    if (!name || name.length < 20 || name.length > 60) {
-        return res.status(400).json({ error: "Name must be between 20 and 60 characters." });
+    // Name: Min 10, Max 30
+    if (!name || name.length < 10 || name.length > 30) {
+        return res.status(400).json({ error: "Name must be between 10 and 30 characters." });
     }
 
     // Address: Max 400

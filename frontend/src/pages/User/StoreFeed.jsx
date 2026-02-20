@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axiosInstance from '../../utils/axiosInstance';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../hooks/useAuth';
 
 export default function StoreFeed() {
     const { user, logout } = useAuth();
@@ -96,17 +96,31 @@ export default function StoreFeed() {
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
             {/* Top Navigation Bar */}
-            <header className="bg-white shadow-sm border-b border-gray-200 py-4 px-8 flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">Store Ratings Feed</h1>
-                    <p className="text-sm text-gray-500">Welcome back, {user?.name}</p>
+            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 py-4 px-6 sm:px-8 flex justify-between items-center">
+                <div className="flex items-center gap-3">
+                    <div>
+                        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+                            Store Ratings
+                        </h1>
+                        <p className="text-sm text-gray-600 mt-0.5">
+                            Welcome back, <span className="font-semibold text-indigo-600">{user?.name || 'User'}</span>
+                        </p>
+                    </div>
                 </div>
-                <button 
-                    onClick={logout}
-                    className="text-red-600 font-medium hover:bg-red-50 px-4 py-2 rounded-lg transition"
-                >
-                    Logout
-                </button>
+                
+                <div className="flex items-center gap-4">
+                    {/* Modern User Avatar Circle */}
+                    <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 shadow-sm">
+                        {user?.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    
+                    <button 
+                        onClick={logout}
+                        className="text-sm font-medium text-rose-600 px-4 py-2 rounded-lg hover:bg-rose-50 hover:text-rose-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+                    >
+                        Logout
+                    </button>
+                </div>
             </header>
 
             {/* Main Content Area */}
@@ -114,15 +128,15 @@ export default function StoreFeed() {
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     
                     {/* Search Bar */}
-                    <div className="p-6 border-b border-gray-100 bg-gray-50">
-                        <input 
-                            type="text" 
-                            placeholder="Search stores by Name or Address..." 
-                            className="w-full md:w-1/2 px-4 py-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 shadow-sm"
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
+            <div className="p-6 border-b border-gray-100 bg-gray-50">
+                <input 
+                    type="text" 
+                    placeholder="Search stores by Name or Address..." 
+                    className="w-full md:w-1/2 px-4 py-3 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-600 transition-colors"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                />
+            </div>
 
                     {/* Data Table */}
                     <div className="overflow-x-auto">
