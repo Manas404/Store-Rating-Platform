@@ -6,8 +6,7 @@ export default function StoreFeed() {
     const { user, logout } = useAuth();
     const [stores, setStores] = useState([]);
     const [loading, setLoading] = useState(true);
-    
-    // Search and Sort State
+
     const [search, setSearch] = useState('');
     const [sortBy, setSortBy] = useState('name');
     const [order, setOrder] = useState('ASC');
@@ -16,10 +15,10 @@ export default function StoreFeed() {
         setLoading(true);
         try {
             const response = await axiosInstance.get('/user/stores', {
-                params: { 
-                    search: search || undefined, 
-                    sortBy, 
-                    order 
+                params: {
+                    search: search || undefined,
+                    sortBy,
+                    order
                 }
             });
             setStores(response.data);
@@ -30,11 +29,8 @@ export default function StoreFeed() {
         }
     };
 
-    // Debounced search and dependency-driven fetching
     useEffect(() => {
-        const timer = setTimeout(() => {
-            fetchStores();
-        }, 300);
+        const timer = setTimeout(fetchStores, 300);
         return () => clearTimeout(timer);
     }, [search, sortBy, order]);
 
@@ -47,10 +43,8 @@ export default function StoreFeed() {
         }
     };
 
-    // Handle interactive star rating submission
     const submitRating = async (storeId, newRating) => {
-        // Optimistic UI update for immediate feedback
-        setStores(stores.map(store => 
+        setStores(stores.map(store =>
             store.id === storeId ? { ...store, myRating: newRating } : store
         ));
 
@@ -59,32 +53,30 @@ export default function StoreFeed() {
                 store_id: storeId,
                 rating: newRating
             });
-            // Fetch again in background to get the updated 'overallRating'
-            fetchStores(); 
+            fetchStores();
         } catch (error) {
-            console.error('Failed to submit rating:', error);
-            alert('Failed to submit your rating. Please try again.');
-            fetchStores(); // Revert on failure
+            alert('Failed to submit rating');
+            fetchStores();
         }
     };
 
-    // Helper component for the 5-star interactive UI
+    /* ⭐ Animated Star Rating */
     const StarRating = ({ storeId, currentRating }) => {
         const [hover, setHover] = useState(0);
 
         return (
             <div className="flex space-x-1">
-                {[1, 2, 3, 4, 5].map((star) => (
+                {[1,2,3,4,5].map((star)=>(
                     <button
                         key={star}
-                        type="button"
-                        className={`text-2xl focus:outline-none transition-colors duration-200 ${
-                            star <= (hover || currentRating) ? 'text-yellow-400' : 'text-gray-300'
+                        className={`text-2xl transition-all duration-300 transform
+                        ${star <= (hover || currentRating)
+                            ? 'text-amber-400 scale-125 drop-shadow-md'
+                            : 'text-gray-300 hover:scale-110'
                         }`}
-                        onClick={() => submitRating(storeId, star)}
-                        onMouseEnter={() => setHover(star)}
-                        onMouseLeave={() => setHover(0)}
-                        title={`Rate ${star} stars`}
+                        onClick={()=>submitRating(storeId,star)}
+                        onMouseEnter={()=>setHover(star)}
+                        onMouseLeave={()=>setHover(0)}
                     >
                         ★
                     </button>
@@ -94,109 +86,182 @@ export default function StoreFeed() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
-            {/* Top Navigation Bar */}
-            <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-200 py-4 px-6 sm:px-8 flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                    <div>
-                        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
-                            Store Ratings
-                        </h1>
-                        <p className="text-sm text-gray-600 mt-0.5">
-                            Welcome back, <span className="font-semibold text-indigo-600">{user?.name || 'User'}</span>
-                        </p>
-                    </div>
+        <div className="min-h-screen flex flex-col
+            bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50">
+
+            {/* NAVBAR */}
+            <header className="sticky top-0 z-50
+                backdrop-blur-xl bg-white/70
+                border-b border-white/40 shadow-sm
+                py-4 px-8 flex justify-between items-center">
+
+                <div>
+                    <h1 className="text-2xl font-extrabold bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        Store Ratings
+                    </h1>
+                    <p className="text-sm text-gray-600">
+                        Welcome back,
+                        <span className="ml-1 font-semibold text-indigo-600">
+                            {user?.name || 'User'}
+                        </span>
+                    </p>
                 </div>
-                
+
                 <div className="flex items-center gap-4">
-                    {/* Modern User Avatar Circle */}
-                    <div className="hidden sm:flex h-10 w-10 items-center justify-center rounded-full bg-indigo-50 text-indigo-700 font-bold border border-indigo-100 shadow-sm">
+                    <div className="hidden sm:flex h-10 w-10 rounded-full
+                        bg-gradient-to-br from-indigo-500 to-purple-600
+                        text-white items-center justify-center
+                        font-bold shadow-lg animate-pulse">
                         {user?.name?.charAt(0).toUpperCase() || 'U'}
                     </div>
-                    
-                    <button 
+
+                    <button
                         onClick={logout}
-                        className="text-sm font-medium text-rose-600 px-4 py-2 rounded-lg hover:bg-rose-50 hover:text-rose-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-rose-500/50"
+                        className="px-4 py-2 rounded-lg text-sm font-medium
+                        bg-rose-50 text-rose-600
+                        hover:bg-rose-500 hover:text-white
+                        transition-all duration-300 shadow-sm"
                     >
                         Logout
                     </button>
                 </div>
             </header>
 
-            {/* Main Content Area */}
+            {/* MAIN */}
             <main className="flex-1 p-8 max-w-7xl mx-auto w-full">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    
-                    {/* Search Bar */}
-            <div className="p-6 border-b border-gray-100 bg-gray-50">
-                <input 
-                    type="text" 
-                    placeholder="Search stores by Name or Address..." 
-                    className="w-full md:w-1/2 px-4 py-3 bg-white text-gray-900 placeholder-gray-500 border border-gray-300 rounded-lg focus:outline-none focus:border-indigo-600 transition-colors"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                />
-            </div>
 
-                    {/* Data Table */}
+                <div className="rounded-2xl overflow-hidden
+                    bg-white/80 backdrop-blur-lg
+                    shadow-xl border border-white/40">
+
+                    {/* SEARCH */}
+                    <div className="p-6 bg-gradient-to-r from-indigo-50 to-purple-50 border-b">
+                        <input
+                            type="text"
+                            placeholder="🔎 Search stores by name or address..."
+                            className="w-full md:w-1/2 px-5 py-3 rounded-xl
+                            border border-indigo-200
+                            focus:ring-2 focus:ring-indigo-500
+                            outline-none transition-all"
+                            value={search}
+                            onChange={(e)=>setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    {/* TABLE */}
                     <div className="overflow-x-auto">
-                        <table className="w-full text-left border-collapse">
+                        <table className="w-full text-left">
                             <thead>
-                                <tr className="bg-white text-gray-600 text-sm uppercase tracking-wider border-b border-gray-200">
-                                    <th 
-                                        className="p-5 cursor-pointer hover:bg-gray-50 transition font-semibold"
-                                        onClick={() => handleSort('name')}
+                                <tr className="text-sm uppercase text-gray-600 bg-white">
+                                    <th
+                                        className="p-5 cursor-pointer hover:text-indigo-600 transition"
+                                        onClick={()=>handleSort('name')}
                                     >
-                                        Store Name {sortBy === 'name' && (order === 'ASC' ? '↑' : '↓')}
+                                        Store Name {sortBy==='name' && (order==='ASC'?'↑':'↓')}
                                     </th>
-                                    <th className="p-5 font-semibold">Address</th>
-                                    <th 
-                                        className="p-5 cursor-pointer hover:bg-gray-50 transition font-semibold"
-                                        onClick={() => handleSort('overallRating')}
+
+                                    <th className="p-5">Address</th>
+
+                                    <th
+                                        className="p-5 cursor-pointer hover:text-indigo-600 transition"
+                                        onClick={()=>handleSort('overallRating')}
                                     >
-                                        Overall Rating {sortBy === 'overallRating' && (order === 'ASC' ? '↑' : '↓')}
+                                        Overall Rating {sortBy==='overallRating' && (order==='ASC'?'↑':'↓')}
                                     </th>
-                                    <th className="p-5 font-semibold text-center">Your Rating</th>
+
+                                    <th className="p-5 text-center">
+                                        Your Rating
+                                    </th>
                                 </tr>
                             </thead>
-                            <tbody className="divide-y divide-gray-100 text-gray-700">
+
+                            <tbody className="divide-y">
+
                                 {loading ? (
-                                    <tr><td colSpan="4" className="p-10 text-center text-gray-500 animate-pulse">Loading stores...</td></tr>
+                                    <tr>
+                                        <td colSpan="4"
+                                            className="p-10 text-center text-gray-500 animate-pulse">
+                                            Loading stores...
+                                        </td>
+                                    </tr>
                                 ) : stores.length === 0 ? (
-                                    <tr><td colSpan="4" className="p-10 text-center text-gray-500">No stores found matching your search.</td></tr>
+                                    <tr>
+                                        <td colSpan="4" className="p-10 text-center text-gray-500">
+                                            No stores found.
+                                        </td>
+                                    </tr>
                                 ) : (
-                                    stores.map((store) => (
-                                        <tr key={store.id} className="hover:bg-blue-50/50 transition duration-150">
-                                            <td className="p-5 font-medium text-gray-900">{store.name}</td>
-                                            <td className="p-5 truncate max-w-md text-sm text-gray-500">{store.address}</td>
+                                    stores.map((store,index)=>(
+                                        <tr
+                                            key={store.id}
+                                            className="group transition-all duration-300
+                                            hover:bg-gradient-to-r
+                                            hover:from-indigo-50
+                                            hover:to-purple-50
+                                            hover:shadow-md
+                                            animate-fadeIn"
+                                            style={{
+                                                animationDelay:`${index*80}ms`
+                                            }}
+                                        >
+                                            <td className="p-5 font-semibold text-gray-900">
+                                                {store.name}
+                                            </td>
+
+                                            <td className="p-5 text-sm text-gray-500">
+                                                {store.address}
+                                            </td>
+
                                             <td className="p-5">
-                                                <div className="flex items-center space-x-2">
-                                                    <span className="text-yellow-400 text-xl">★</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-amber-400 text-xl animate-pulse">
+                                                        ★
+                                                    </span>
                                                     <span className="font-bold text-lg">
                                                         {Number(store.overallRating).toFixed(1)}
                                                     </span>
-                                                    <span className="text-xs text-gray-400">/ 5</span>
+                                                    <span className="text-xs text-gray-400">/5</span>
                                                 </div>
                                             </td>
+
                                             <td className="p-5">
-                                                <div className="flex justify-center flex-col items-center space-y-1">
-                                                    <StarRating 
-                                                        storeId={store.id} 
-                                                        currentRating={store.myRating || 0} 
+                                                <div className="flex flex-col items-center space-y-1">
+                                                    <StarRating
+                                                        storeId={store.id}
+                                                        currentRating={store.myRating || 0}
                                                     />
                                                     <span className="text-xs text-gray-400">
-                                                        {store.myRating ? 'Click to modify' : 'Click to rate'}
+                                                        {store.myRating ? 'Update rating' : 'Click to rate'}
                                                     </span>
                                                 </div>
                                             </td>
                                         </tr>
                                     ))
                                 )}
+
                             </tbody>
                         </table>
                     </div>
                 </div>
             </main>
+
+            {/* Animation style */}
+            <style jsx>{`
+                @keyframes fadeIn {
+                    from {
+                        opacity:0;
+                        transform:translateY(12px);
+                    }
+                    to {
+                        opacity:1;
+                        transform:translateY(0);
+                    }
+                }
+                .animate-fadeIn {
+                    animation:fadeIn .5s ease forwards;
+                }
+            `}</style>
+
         </div>
     );
 }
